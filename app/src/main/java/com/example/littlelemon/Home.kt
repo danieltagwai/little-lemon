@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
+import java.util.Locale.Category
 
 
 @Composable
@@ -159,12 +160,12 @@ fun Home(navController: NavHostController, database: AppDatabase) {
             Text(text = "ORDER FOR DELIVERY!",
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp,
-                modifier = Modifier.padding(top = 20.dp))
+                modifier = Modifier.padding(vertical = 10.dp))
             LazyRow(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 10.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 items(
                     items = menuItemByCat,
@@ -172,20 +173,15 @@ fun Home(navController: NavHostController, database: AppDatabase) {
                         val buttonColor = remember {
                             mutableStateOf(Color(0xFFAFAFAF))
                         }
+                        buttonColor.value = when(categoryFilter.value) {
+                            items -> Color(0xFF495E57)
+                            else -> Color(0xFFAFAFAF)
+                        }
                         Button(
                             onClick = {
                                 when (categoryFilter.value) {
-                                    items -> {
-                                        categoryFilter.value = ""
-                                        buttonColor.value = Color(0xFFAFAFAF)
-                                    }
-                                    "" -> {
-                                        categoryFilter.value = items
-                                        buttonColor.value = Color(0xFF495E57)
-                                    }
-                                    else -> Toast.makeText(context,
-                                        "Disable prior filter",
-                                        Toast.LENGTH_SHORT ).show()
+                                    items -> categoryFilter.value = ""
+                                    else -> categoryFilter.value = items
                                 }
                             },
                             modifier = Modifier.wrapContentWidth(),
