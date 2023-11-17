@@ -3,14 +3,11 @@ package com.example.littlelemon
 import android.content.SharedPreferences
 import android.widget.Toast
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -19,7 +16,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,7 +25,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -39,13 +34,13 @@ fun Onboarding(navController: NavHostController, sharedPreferences: SharedPrefer
 
     val context = LocalContext.current
 
-    var firstName = remember {
+    val firstName = remember {
         mutableStateOf("")
     }
-    var lastName = remember {
+    val lastName = remember {
         mutableStateOf("")
     }
-    var email = remember {
+    val email = remember {
         mutableStateOf("")
     }
 
@@ -79,7 +74,7 @@ fun Onboarding(navController: NavHostController, sharedPreferences: SharedPrefer
                     .align(Alignment.Start)
                     .padding(vertical = 30.dp),
                 fontSize = 18.sp,
-                color = Color(0xFF333333)
+                color = Color(0xFF495E57)
             )
             OutlinedTextField(value = firstName.value,
                 onValueChange = { firstName.value = it },
@@ -91,6 +86,7 @@ fun Onboarding(navController: NavHostController, sharedPreferences: SharedPrefer
             OutlinedTextField(value = lastName.value,
                 onValueChange = { lastName.value = it },
                 label = {Text("Last Name")},
+                maxLines = 1,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 10.dp))
@@ -116,7 +112,11 @@ fun Onboarding(navController: NavHostController, sharedPreferences: SharedPrefer
                             .putString("lastName", lastName.value)
                             .putString("email", email.value)
                             .apply()
-                        navController.navigate(Home.route)
+                        navController.navigate(Home.route) {
+                            popUpTo(Onboarding.route) {
+                                inclusive = true
+                            }
+                        }
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),

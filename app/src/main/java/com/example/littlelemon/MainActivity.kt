@@ -1,28 +1,36 @@
 package com.example.littlelemon
 
-import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.littlelemon.ui.theme.LittleLemonTheme
+import androidx.room.Room
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.engine.android.Android
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.get
+import io.ktor.http.ContentType
+import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             MyNavigation()
+        }
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            if (database.menuItemDao().isEmpty()) {
+                val result = fetchMenu()
+                saveMenuToDatabase(result)
+            }
         }
     }
 
@@ -31,7 +39,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun startDest(): String {
-        var dest: String
+        val dest: String
         if (sharedPref.contains("firstName") && sharedPref.contains("lastName")
             && sharedPref.contains("email")) {
             dest = Home.route
@@ -52,11 +60,34 @@ class MainActivity : ComponentActivity() {
                 Onboarding(navController, sharedPref)
             }
             composable(Home.route) {
-                Home(navController)
+                Home(navController, database)
             }
             composable(Profile.route) {
                 Profile(navController, sharedPref)
             }
         }
     }
+
+    private val client = HttpClient(Android) {
+        install(ContentNegotiation) {
+            json(contentType = ContentType("text", "plain"))
+        }
+    }
+
+    private suspend fun fetchMenu(): List<MenuItemNetwork> {
+        val response = client.get("https://raw.githubusercontent.com/Meta-Mobile-Developer-PC/Working-With-Data-API/main/menu.json").body<MenuNetwork>()
+        return response.menu
+    }
+
+    private val database by lazy {
+        Room.databaseBuilder(applicationContext, AppDatabase::class.java, "database").build()
+    }
+
+    private fun saveMenuToDatabase(menuItemsNetwork: List<MenuItemNetwork>) {
+        val menuItemsRoom = menuItemsNetwork.map { it.toMenuItemRoom()}
+        database.menuItemDao().insertAll(*menuItemsRoom.toTypedArray())
+    }
+
+
+
 }
